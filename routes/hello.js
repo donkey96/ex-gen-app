@@ -103,7 +103,7 @@ router.get('/edit', (req, res, next) => {
 
   // データを取り出す
   connection.query('SELECT * from mydata where id=?', id,
-    function (error, results, fileds) {
+    function (error, results, fields) {
       if (error == null) {
         var data = {
           title: 'Hello/Edit',
@@ -134,7 +134,53 @@ router.post('/edit', (req, res, next) => {
 
   // データを取り出す
   connection.query('update mydata set ? where id = ?', [data, id],
-    function (error, results, fileds) {
+    function (error, results, fields) {
+      res.redirect('/hello');
+    });
+  // 接続を解除
+  connection.end();
+});
+
+// 指定レコードを削除
+router.get('/delete', (req, res, next) => {
+  var id = req.query.id;
+
+  // データベースの設定情報
+  var connection = mysql.createConnection(mysql_setting);
+
+  // データベースに接続
+  connection.connect();
+
+  // データを取り出す
+  connection.query('SELECT * from mydata where id=?', id,
+    function (error, results, fields) {
+      // データベースアクセス完了時の処理
+      if (error == null) {
+        var data = {
+          title: 'Hello/Delete',
+          content: 'id = ' + id + 'のレコード:',
+          mydata: results[0]
+        }
+        res.render('hello/delete', data);
+      }
+    });
+  // 接続を解除
+  connection.end();
+});
+
+// 削除フォームの送信処理
+router.post('/delete', (req, res, next) => {
+  var id = req.body.id;
+
+  // データベースの設定情報
+  var connection = mysql.createConnection(mysql_setting);
+
+  // データベースへの接続
+  connection.connect();
+
+  // データを取り出す
+  connection.query('delete from mydata where id=?', id,
+    function (error, results, fields) {
       res.redirect('/hello');
     });
   // 接続を解除
