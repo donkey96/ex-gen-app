@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/ajax', ajaxRouter);
-app.use(validator());
 
 var session_opt = {
   secret: 'keyboard cat',
@@ -31,6 +30,8 @@ var session_opt = {
   cookie: { maxAge: 60 * 60 * 1000 }
 };
 app.use(session(session_opt));
+
+app.use(validator());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
