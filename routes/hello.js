@@ -11,26 +11,35 @@ var mysql_setting = {
   database : 'my-nodeapp-db'
 };
 
+var knex = require('knex')({
+  dialect: 'mysql',
+  connection: {
+    host     : 'localhost',
+    user     : 'root',
+    password : '',
+    database : 'my-nodeapp-db',
+    charset  : 'utf8'
+  }
+});
+
+var Bookshelf = require('bookshelf')(knex);
+
+var MyData = Bookshelf.Model.extend({
+  tableName: 'mydata'
+});
+
 // デフォルトページ
 router.get('/', (req, res, next) => {
-
-  // コネクションの用意
-  var connection = mysql.createConnection(mysql_setting);
-
-  // データベースに接続
-  connection.connect();
-
-  // データを取り出す
-  connection.query('SELECT * from mydata',
-    function (error, results, fields) {
-      // データベースアクセス完了時の処理
-      if (error == null) {
-        var data = { title: 'mysql', content: results };
-        res.render('hello/index', data);
-      }
+  new MyData().fetchAll().then((collection) => {
+    var data = {
+      title: 'Hello!',
+      content: collection.toArray()
+    };
+    res.render('hello/index', data);
+  })
+  .catch((err) => {
+    res.status(500).json({ error: true, data: { message: err.message } });
   });
-  // 接続を解除
-  connection.end();
 });
 
 // 新規作成ページへのアクセス
@@ -45,44 +54,9 @@ router.get('/add', (req, res, next) => {
 
 // 新規作成フォーム送信の処理
 router.post('/add', (req, res, next) => {
-  req.check('name', 'NAME は必ず入力して下さい。').notEmpty();
-  req.check('mail', 'MAIL はメールアドレスを記入して下さい。').isEmail();
-  req.check('age', 'AGE は年齢(整数)を入力下さい。').isInt();
-
-  req.getValidationResult().then((result) => {
-    if (!result.isEmpty()) {
-      var re = '<ul class="error">';
-      var result_arr = result.array();
-      for(var n in result_arr) {
-        re += '<li>' + result_arr[n].msg + '</li>'
-      }
-      re += '</ul>';
-      var data = {
-        title: 'Hello/Add',
-        content: re,
-        form: req.body
-      }
-      res.render('hello/add', data);
-    } else {
-      var nm = req.body.name;
-      var ml = req.body.mail;
-      var ag = req.body.age;
-      var data = { 'name': nm, 'mail': ml, 'age': ag };
-    
-      // データベースの設定情報
-      var connection = mysql.createConnection(mysql_setting);
-    
-      // データベースに接続
-      connection.connect();
-    
-      // データを取り出す
-      connection.query('insert into mydata set ?', data,
-        function (error, results, fields) {
-          res.redirect('/hello');
-        });
-      // 接続を解除
-      connection.end();    
-    }
+  var response = res;
+  new MyData(req.body).save().then((model) => {
+    response.redirect('/hello');
   });
 });
 
