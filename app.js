@@ -4,8 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
-var validator = require('express-validator');
-
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var helloRouter = require('./routes/hello');
@@ -31,7 +29,7 @@ var session_opt = {
 };
 app.use(session(session_opt));
 
-app.use(validator());
+const { check, validationResult } = require('express-validator');
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
