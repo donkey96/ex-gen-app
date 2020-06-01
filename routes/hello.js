@@ -55,6 +55,10 @@ router.get('/add', (req, res, next) => {
 // 新規作成フォーム送信の処理
 router.post('/add', (req, res, next) => {
   var response = res;
+
+  check('mail', 'MAIL はメールアドレスを記入して下さい。').isEmail();
+  check('age', 'AGE は年齢（整数）を入力下さい。').isInt();
+  
   new MyData(req.body).save().then((model) => {
     response.redirect('/hello');
   });
